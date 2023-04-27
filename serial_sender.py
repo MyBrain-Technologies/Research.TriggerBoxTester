@@ -7,6 +7,9 @@ import time
 import serial
 import sys
 
+with open("VERSION.txt", "r") as v:
+    version = v.read().strip()
+
 
 class SerialSender(QWidget):
     def __init__(self):
@@ -77,6 +80,10 @@ class SerialSender(QWidget):
         hbox_logo.addWidget(logo_label)
         hbox_logo.setAlignment(Qt.AlignCenter)
 
+        hbox_bottom = QHBoxLayout()
+        hbox_bottom.addWidget(QLabel("© myBrainTechnologies - 2023"))
+        hbox_bottom.addWidget(QLabel("v" + version))
+
         vbox = QVBoxLayout()
         vbox.addLayout(hbox_logo)
         vbox.addWidget(QLabel("Select Serial Port:"))
@@ -88,7 +95,7 @@ class SerialSender(QWidget):
         vbox.addWidget(self.slider)
         vbox.addWidget(QLabel("Sent Messages:"))
         vbox.addWidget(self.log_box)
-        vbox.addWidget(QLabel("© myBrainTechnologies - 2023"))
+        vbox.addLayout(hbox_bottom)
 
         self.setWindowTitle('MBT TriggerBox Tester')
         self.setLayout(vbox)
