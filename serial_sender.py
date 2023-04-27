@@ -16,6 +16,7 @@ class SerialSender(QWidget):
         super().__init__()
 
         self.serial_port = None
+        self.encoding = "utf-8"
 
         # create a label for the logo
         logo_label = QLabel(self)
@@ -28,6 +29,13 @@ class SerialSender(QWidget):
         self.serial_combo.setMaximumHeight(40)
         self.serial_combo.currentTextChanged.connect(self.serial_port_selected)
 
+        # Combobox to select serial port
+        self.encoding_combo = QComboBox()
+        self.encoding_combo.setMinimumWidth(120)
+        self.encoding_combo.setMaximumHeight(40)
+        self.encoding_combo.addItems(['utf-8', 'ascii'])
+        self.encoding_combo.currentTextChanged.connect(self.encoding_selected)
+
         # Add refresh button
         self.refresh_button = QPushButton(QIcon("assets/refresh.png"), "", self)
         self.refresh_button.setMaximumWidth(60)
@@ -39,15 +47,15 @@ class SerialSender(QWidget):
         # Add loop checkbox
         self.loop_message = QCheckBox()
         self.loop_message.setCheckState(False)
-        self.loop_message.setToolTip("Check for looping the message")
+        self.loop_message.setToolTip("Check to send triggers in loop")
 
         # Textbox for inputting message to send
         self.message_box = QTextEdit()
         self.message_box.setFixedHeight(60)
-        self.message_box.setPlaceholderText("Enter comma triggers message here")
+        self.message_box.setPlaceholderText("Enter space separated triggers here")
 
         # Button to send message
-        self.send_button = QPushButton("Send Message")
+        self.send_button = QPushButton("Send Trigger")
         self.send_button.clicked.connect(self.send_message)
 
         # Slider to set message delay
@@ -57,13 +65,13 @@ class SerialSender(QWidget):
         self.slider.setTickPosition(QSlider.TicksBelow)
         self.slider.setTickInterval(1)
         self.slider.valueChanged.connect(self.slider_value_changed)
-        self.slider_label = QLabel("Delay: {} sec".format(self.slider.value()))
+        self.slider_label = QLabel("Delay between triggers: {} sec".format(self.slider.value()))
 
         # Textbox for logging sent messages
         self.log_box = QTextEdit()
         self.log_box.setReadOnly(True)
         self.log_box.setStyleSheet("background-color: black; color: white")
-        self.log_box.append("Welcome to the TriggerBox Tester, please select a serial port and start sending triggers.")
+        self.log_box.append("Welcome to the MBT TriggerBox Tester v" + version)
         self.log_box.append("Please select a serial port and start sending triggers.")
         self.log_box.append("Tip: write space separated values in the text box above.")
         self.log_box.repaint()
@@ -72,8 +80,10 @@ class SerialSender(QWidget):
         hbox_refresh = QHBoxLayout()
         hbox_refresh.addWidget(self.serial_combo)
         hbox_refresh.addWidget(self.refresh_button)
-        hbox_refresh.addWidget(QLabel("Loop message"))
+        hbox_refresh.addWidget(QLabel("Loop triggers"))
         hbox_refresh.addWidget(self.loop_message)
+        hbox_refresh.addWidget(QLabel("Encoding"))
+        hbox_refresh.addWidget(self.encoding_combo)
         hbox_refresh.setAlignment(Qt.AlignLeft)
 
         hbox_logo = QHBoxLayout()
@@ -93,7 +103,7 @@ class SerialSender(QWidget):
         vbox.addWidget(self.send_button)
         vbox.addWidget(self.slider_label)
         vbox.addWidget(self.slider)
-        vbox.addWidget(QLabel("Sent Messages:"))
+        vbox.addWidget(QLabel("Activity logs:"))
         vbox.addWidget(self.log_box)
         vbox.addLayout(hbox_bottom)
 
@@ -102,6 +112,9 @@ class SerialSender(QWidget):
         self.refresh_serial_ports()
 
     def serial_port_selected(self):
+        """
+        Set the selected serial port and updates the log box.
+        """
         port_name = self.serial_combo.currentText()
         if self.serial_port and self.serial_port.isOpen():
             self.serial_port.close()
@@ -114,7 +127,19 @@ class SerialSender(QWidget):
             self.log_box.append(e)
             self.log_box.repaint()
 
+    def encoding_selected(self):
+        """
+        Set the selected encoding standard port and updates the log box.
+        """
+        self.encoding = self.encoding_combo.currentText()
+        self.log_box.append("Selected encoding: " + self.encoding)
+        self.log_box.repaint()
+
+
     def refresh_serial_ports(self):
+        """
+        Scan the system for available serial ports and updates the dropdown menu
+        """
         self.serial_combo.clear()
         self.log_box.append("Scanning for serial ports...")
         self.log_box.repaint()
@@ -129,8 +154,10 @@ class SerialSender(QWidget):
             self.log_box.repaint()
 
     def send_message(self):
-
-        message = self.message_box.toPlainText().replace('\n', '').strip()
+        """
+        Parse the input box and sends each character encoded as a byte string
+        """
+        message = self.message_box.toPlainText().replace('\n', '').replace(" ", "").strip()
         if message == 'dev':
             self.log_box.append("This tool was developed by Michele Romani.")
             self.log_box.repaint()
@@ -147,7 +174,7 @@ class SerialSender(QWidget):
 
         while self.loop_message.isChecked():
             for idx, char in enumerate(message):
-                message_bytes = char.encode('utf-8')
+                message_bytes = char.encode(self.encoding)
                 delay = self.slider.value()
                 self.send_button.setEnabled(False)
                 self.log_box.append("Encoding: " + char + " as " + str(message_bytes))
@@ -159,7 +186,7 @@ class SerialSender(QWidget):
         self.send_button.setEnabled(True)
 
     def slider_value_changed(self, value):
-        self.slider_label.setText("Delay: {} sec".format(value))
+        self.slider_label.setText("Delay between triggers: {} sec".format(value))
 
 
 if __name__ == '__main__':
