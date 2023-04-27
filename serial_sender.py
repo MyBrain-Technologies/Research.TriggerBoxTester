@@ -24,7 +24,6 @@ class SerialSender(QWidget):
         self.serial_combo.setMinimumWidth(120)
         self.serial_combo.setMaximumHeight(40)
         self.serial_combo.currentTextChanged.connect(self.serial_port_selected)
-        self.refresh_serial_ports()
 
         # Add refresh button
         self.refresh_button = QPushButton(QIcon("assets/refresh.png"), "", self)
@@ -93,6 +92,7 @@ class SerialSender(QWidget):
 
         self.setWindowTitle('MBT TriggerBox Tester')
         self.setLayout(vbox)
+        self.refresh_serial_ports()
 
     def serial_port_selected(self):
         port_name = self.serial_combo.currentText()
@@ -109,11 +109,17 @@ class SerialSender(QWidget):
 
     def refresh_serial_ports(self):
         self.serial_combo.clear()
-        ports = [port.device for port in list_ports.comports()]
-        for port, desc, hwid in sorted(ports):
-            self.log_box.append("Found {}: {} [{}]".format(port, desc, hwid))
+        self.log_box.append("Scanning for serial ports...")
+        self.log_box.repaint()
+        try:
+            ports = [port.device for port in list_ports.comports()]
+            for port, in sorted(ports):
+                self.log_box.append("Found: {}]".format(port))
+                self.log_box.repaint()
+            self.serial_combo.addItems(ports)
+        except serial.SerialException as e:
+            self.log_box.append(e)
             self.log_box.repaint()
-        self.serial_combo.addItems(ports)
 
     def send_message(self):
 
