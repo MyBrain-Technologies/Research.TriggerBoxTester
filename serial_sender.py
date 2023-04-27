@@ -7,8 +7,11 @@ import time
 import serial
 import sys
 
-with open("VERSION.txt", "r") as v:
-    version = v.read().strip()
+try:
+    with open("VERSION.txt", "r") as v:
+        version = v.read().strip()
+except:
+    version = ''
 
 
 class SerialSender(QWidget):
@@ -16,6 +19,7 @@ class SerialSender(QWidget):
         super().__init__()
 
         self.serial_port = None
+        self.baudrate = 9600
         self.encoding = "utf-8"
 
         # create a label for the logo
@@ -119,12 +123,13 @@ class SerialSender(QWidget):
         if self.serial_port and self.serial_port.isOpen():
             self.serial_port.close()
         try:
-            self.serial_port = serial.Serial(port_name, 9600)
-            self.serial_port.open()
+            self.serial_port = serial.Serial(port=port_name, baudrate=self.baudrate)
+            if not self.serial_port.isOpen():
+                self.serial_port.open()
             self.log_box.append("Selected serial port: " + port_name)
             self.log_box.repaint()
         except serial.SerialException as e:
-            self.log_box.append(e)
+            self.log_box.append("Cannot open the serial ports: " + str(e))
             self.log_box.repaint()
 
     def encoding_selected(self):
@@ -135,7 +140,6 @@ class SerialSender(QWidget):
         self.log_box.append("Selected encoding: " + self.encoding)
         self.log_box.repaint()
 
-
     def refresh_serial_ports(self):
         """
         Scan the system for available serial ports and updates the dropdown menu
@@ -145,12 +149,14 @@ class SerialSender(QWidget):
         self.log_box.repaint()
         try:
             ports = [port.device for port in list_ports.comports()]
-            for port, in sorted(ports):
-                self.log_box.append("Found: {}]".format(port))
+            self.log_box.append(str(ports))
+            for port in sorted(ports):
+                self.log_box.append("Found: {}".format(port))
                 self.log_box.repaint()
             self.serial_combo.addItems(ports)
+            self.serial_port = serial.Serial(port=ports[0], baudrate=self.baudrate)
         except serial.SerialException as e:
-            self.log_box.append(e)
+            self.log_box.append("Error while scanning the serial ports: " + str(e))
             self.log_box.repaint()
 
     def send_message(self):
@@ -172,18 +178,23 @@ class SerialSender(QWidget):
             self.log_box.repaint()
             return
 
+        self.send_button.setEnabled(False)
+        self.encode_and_send(message=message)
+
         while self.loop_message.isChecked():
-            for idx, char in enumerate(message):
-                message_bytes = char.encode(self.encoding)
-                delay = self.slider.value()
-                self.send_button.setEnabled(False)
-                self.log_box.append("Encoding: " + char + " as " + str(message_bytes))
-                self.log_box.repaint()
-                self.log_box.append("Sending: " + str(message_bytes) + " with " + delay + "s intervals.")
-                self.log_box.repaint()
-                self.serial_port.write(message_bytes)
-                time.sleep(delay)
+            self.encode_and_send(message=message)
         self.send_button.setEnabled(True)
+
+    def encode_and_send(self, message):
+        for idx, char in enumerate(message):
+            message_bytes = char.encode(self.encoding)
+            delay = self.slider.value()
+            self.log_box.append("Encoding: " + char + " as " + str(message_bytes))
+            self.log_box.repaint()
+            self.log_box.append("Sending: " + str(message_bytes) + " with " + str(delay) + "s intervals.")
+            self.log_box.repaint()
+            self.serial_port.write(message_bytes)
+            time.sleep(delay)
 
     def slider_value_changed(self, value):
         self.slider_label.setText("Delay between triggers: {} sec".format(value))
