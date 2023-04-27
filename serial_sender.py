@@ -63,7 +63,7 @@ class SerialSender(QWidget):
         self.log_box.setStyleSheet("background-color: black; color: white")
         self.log_box.append("Welcome to the TriggerBox Tester, please select a serial port and start sending triggers.")
         self.log_box.append("Please select a serial port and start sending triggers.")
-        self.log_box.append("Tip: write comma separated values in the text box above.")
+        self.log_box.append("Tip: write space separated values in the text box above.")
         self.log_box.repaint()
 
         # Layout
