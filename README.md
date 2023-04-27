@@ -46,3 +46,9 @@ To run the application, activate the virtual environment and run the serial_send
 `python serial_sender.py`
 
 The application window should open, and you can select the serial port, enter the message, adjust the interval and checkbox settings, and send the message.
+
+## Build executable
+Currently only supported on Windows using [PyInstaller](https://pyinstaller.org) and [UPX](https://github.com/upx/upx).
+### On Windows:
+` pyinstaller  --name=MBTTriggerBoxTester --icon='assets\Icon.ico' --clean --splash="assets\splash.jpg" --upx-dir=upx --onefile --noconsole .\serial_sender.py ; copy -r "assets" "dist/"
+`
