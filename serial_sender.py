@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QComboBox, QTextEdit, QPushButton, QSlider, QHBoxLayout, \
-    QVBoxLayout
+    QVBoxLayout, QCheckBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
 from serial.tools import list_ports
@@ -18,7 +18,6 @@ class SerialSender(QWidget):
         logo_label = QLabel(self)
         logo_label.setPixmap(QPixmap("assets/logo.png"))
         logo_label.setScaledContents(False)
-        #logo_label.setGeometry(10, 10, 100, 100)
 
         # Combobox to select serial port
         self.serial_combo = QComboBox()
@@ -34,6 +33,11 @@ class SerialSender(QWidget):
         self.refresh_button.setToolTip("Refresh serial ports list")
         self.refresh_button.move(360, 45)
         self.refresh_button.clicked.connect(self.refresh_serial_ports)
+
+        # Add loop checkbox
+        self.loop_message = QCheckBox()
+        self.loop_message.setCheckState(False)
+        self.loop_message.setToolTip("Check for looping the message")
 
         # Textbox for inputting message to send
         self.message_box = QTextEdit()
@@ -66,6 +70,8 @@ class SerialSender(QWidget):
         hbox_refresh = QHBoxLayout()
         hbox_refresh.addWidget(self.serial_combo)
         hbox_refresh.addWidget(self.refresh_button)
+        hbox_refresh.addWidget(QLabel("Loop message"))
+        hbox_refresh.addWidget(self.loop_message)
         hbox_refresh.setAlignment(Qt.AlignLeft)
 
         hbox_logo = QHBoxLayout()
@@ -94,10 +100,12 @@ class SerialSender(QWidget):
             self.serial_port.close()
         try:
             self.serial_port = serial.Serial(port_name, 9600)
+            self.serial_port.open()
             self.log_box.append("Selected serial port: " + port_name)
             self.log_box.repaint()
-        except serial.SerialException:
-            pass
+        except serial.SerialException as e:
+            self.log_box.append(e)
+            self.log_box.repaint()
 
     def refresh_serial_ports(self):
         self.serial_combo.clear()
@@ -108,6 +116,7 @@ class SerialSender(QWidget):
         self.serial_combo.addItems(ports)
 
     def send_message(self):
+
         message = self.message_box.toPlainText().replace('\n', '').strip()
         if message == 'dev':
             self.log_box.append("This tool was developed by Michele Romani.")
@@ -122,18 +131,22 @@ class SerialSender(QWidget):
             self.log_box.append("You need to select a serial port.")
             self.log_box.repaint()
             return
-        message_bytes = message.encode('ascii')
-        delay = self.slider.value()
-        self.send_button.setEnabled(False)
-        self.log_box.append("Sending: " + message + " with " + delay + "s intervals.")
-        self.log_box.repaint()
-        self.serial_port.write(message_bytes)
-        time.sleep(delay)
+
+        while self.loop_message.isChecked():
+            for idx, char in enumerate(message):
+                message_bytes = char.encode('utf-8')
+                delay = self.slider.value()
+                self.send_button.setEnabled(False)
+                self.log_box.append("Encoding: " + char + " as " + str(message_bytes))
+                self.log_box.repaint()
+                self.log_box.append("Sending: " + str(message_bytes) + " with " + delay + "s intervals.")
+                self.log_box.repaint()
+                self.serial_port.write(message_bytes)
+                time.sleep(delay)
         self.send_button.setEnabled(True)
 
     def slider_value_changed(self, value):
         self.slider_label.setText("Delay: {} sec".format(value))
-
 
 
 if __name__ == '__main__':
