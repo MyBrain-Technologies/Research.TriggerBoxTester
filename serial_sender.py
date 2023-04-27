@@ -154,7 +154,6 @@ class SerialSender(QWidget):
                 self.log_box.append("Found: {}".format(port))
                 self.log_box.repaint()
             self.serial_combo.addItems(ports)
-            self.serial_port = serial.Serial(port=ports[0], baudrate=self.baudrate)
         except serial.SerialException as e:
             self.log_box.append("Error while scanning the serial ports: " + str(e))
             self.log_box.repaint()
@@ -188,10 +187,9 @@ class SerialSender(QWidget):
     def encode_and_send(self, message):
         for idx, char in enumerate(message):
             message_bytes = char.encode(self.encoding)
+            binary_str = [format(b, '08b') for b in message_bytes]
             delay = self.slider.value()
-            self.log_box.append("Encoding: " + char + " as " + str(message_bytes))
-            self.log_box.repaint()
-            self.log_box.append("Sending: " + str(message_bytes) + " with " + str(delay) + "s intervals.")
+            self.log_box.append("Encoding: " + char + " as " + str(binary_str) + " with " + str(delay) + "s intervals.")
             self.log_box.repaint()
             self.serial_port.write(message_bytes)
             time.sleep(delay)
