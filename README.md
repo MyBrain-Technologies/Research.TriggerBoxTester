@@ -1,5 +1,5 @@
 # Research.TriggerBoxTester
-A simple Python application built in with PyQT5 to test the TriggerBox developed by myBrainTechnologies.
+A simple Python application built with PyQT5 to test the TriggerBox developed by myBrainTechnologies.
 The tool can be locally installed and run using Python on any OS, or through an executable available on the [release page](https://github.com/mbt-michele-r/Research.TriggerBoxTester/releases) (Windows only).
 > **Warning**
 > To access the serial ports of your system you need admin privileges.
@@ -11,7 +11,8 @@ To test the trigger:
 - Select a Serial Port (On Windows it will be name COM + a number, on Unix systems it will be named ttyUSB + a number)
 - Select an encoding (UTF-8 is the standard we use in myBrainTechnologies)
 - Write some characters to be encoded
-- Click on "Send Triggers)
+- Click on "Send Triggers"
+
 There are some customizable options such as looping the sequence of triggers (still experimental and unstable) and setting the time delay between triggers (min 1 second, max 10 seconds).
 
 
