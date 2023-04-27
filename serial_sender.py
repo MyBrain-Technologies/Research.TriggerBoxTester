@@ -156,6 +156,13 @@ class SerialSender(QWidget):
 
 
 if __name__ == '__main__':
+    try:
+        import pyi_splash
+
+        pyi_splash.update_text('UI Loaded ...')
+        pyi_splash.close()
+    except:
+        pass
     app = QApplication(sys.argv)
     main_window = SerialSender()
     main_window.show()
