@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QComboBox, QTextEdit, QPushButton, QSlider, QHBoxLayout, \
     QVBoxLayout, QCheckBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap, QIcon
 from serial.tools import list_ports
 import time
@@ -22,10 +22,14 @@ class SerialSender(QWidget):
         self.baudrate = 9600
         self.encoding = "utf-8"
 
+        self.setFixedSize(450, 600)
+
         # create a label for the logo
         logo_label = QLabel(self)
         logo_label.setPixmap(QPixmap("assets/logo.png"))
-        logo_label.setScaledContents(False)
+        logo_label.setMaximumWidth(280)
+        logo_label.setMaximumHeight(120)
+        logo_label.setScaledContents(True)
 
         # Combobox to select serial port
         self.serial_combo = QComboBox()
