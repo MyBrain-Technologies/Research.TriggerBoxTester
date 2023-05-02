@@ -5,8 +5,13 @@ The tool can be locally installed and run using Python on any OS, or through an 
 > To access the serial ports of your system you need admin privileges.
 
 ## Usage
-The tool assumes that you have access to MBT Acquisier App, with a protocol allowing activations (triggers) and a Melomind/QPlus device. Futhermore, the MBT TriggerBox should be connected to both the PC and the Melomind/QPlus device.
-To test the trigger:
+The tool assumes that you have access to MBT Acquisier App, with a protocol allowing activations (triggers) and a MBT EEG device. Futhermore, the MBT TriggerBox should be connected to both the PC and the EEG device.
+The following devices are currently supported:
+- Melomind
+- Q+
+- Hyperion
+
+How to use the TriggerBoxTester:
 - Open MBT TriggerBox Tester
 - Select a Serial Port (On Windows it will be name COM + a number, on Unix systems it will be named ttyUSB + a number)
 - Select an encoding (UTF-8 is the standard we use in myBrainTechnologies)
