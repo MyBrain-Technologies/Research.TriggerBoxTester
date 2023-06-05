@@ -19,7 +19,7 @@ class SerialSender(QWidget):
         super().__init__()
 
         self.serial_port = None
-        self.baudrate = 9600
+        self.baudrate = 115200
         self.encoding = "utf-8"
 
         # create a label for the logo
@@ -52,6 +52,11 @@ class SerialSender(QWidget):
         self.loop_message = QCheckBox()
         self.loop_message.setCheckState(False)
         self.loop_message.setToolTip("Check to send triggers in loop")
+
+        # Add keyboard trigger
+        self.keyboard_trigger = QCheckBox()
+        self.keyboard_trigger.setCheckState(False)
+        self.keyboard_trigger.setToolTip("Check to send triggers by keyboard input")
 
         # Textbox for inputting message to send
         self.message_box = QTextEdit()
@@ -88,6 +93,8 @@ class SerialSender(QWidget):
         hbox_refresh.addWidget(self.loop_message)
         hbox_refresh.addWidget(QLabel("Encoding"))
         hbox_refresh.addWidget(self.encoding_combo)
+        hbox_refresh.addWidget(QLabel("Keyboard triggers"))
+        hbox_refresh.addWidget(self.keyboard_trigger)
         hbox_refresh.setAlignment(Qt.AlignLeft)
 
         hbox_logo = QHBoxLayout()
@@ -158,11 +165,14 @@ class SerialSender(QWidget):
             self.log_box.append("Error while scanning the serial ports: " + str(e))
             self.log_box.repaint()
 
-    def send_message(self):
+    def send_message(self, string_message=None):
         """
         Parse the input box and sends each character encoded as a byte string
         """
-        message = self.message_box.toPlainText().replace('\n', '').replace(" ", "").strip()
+        if string_message:
+            message = string_message
+        else:
+            message = self.message_box.toPlainText().replace('\n', '').replace(" ", "").strip()
         if message == 'dev':
             self.log_box.append("This tool was developed by Michele Romani.")
             self.log_box.repaint()
@@ -196,6 +206,11 @@ class SerialSender(QWidget):
 
     def slider_value_changed(self, value):
         self.slider_label.setText("Delay between triggers: {} sec".format(value))
+
+    def keyPressEvent(self, event):
+        if self.keyboard_trigger.isChecked():
+            key_pressed = chr(event.key())
+            self.send_message(key_pressed)
 
 
 if __name__ == '__main__':
